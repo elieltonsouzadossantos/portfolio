@@ -619,7 +619,7 @@
   }
   .footer-watermark{
     position:absolute;
-    bottom:-22px;left:50%;
+    bottom:-6px;left:50%;
     transform:translateX(-50%);
     font-size:min(15vw,120px);
     font-weight:700;
@@ -629,6 +629,8 @@
     white-space:nowrap;
     pointer-events:none;
     user-select:none;
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 96%);
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 96%);
   }
   .footer-grid{
     position:relative;
@@ -680,6 +682,8 @@
     .faq-item summary{font-size:15px;padding:18px 20px;}
     .faq-sub{font-size:15.5px;}
     .footer-credentials{text-align:left;}
+    footer{padding-bottom:56px;}
+    .footer-watermark{font-size:min(20vw,72px);bottom:-4px;}
     .mini-grid{grid-template-columns:1fr 1fr;}
     .stat-strip{grid-template-columns:1fr;}
     .stat{border-left:none;border-top:1px solid var(--line);}
