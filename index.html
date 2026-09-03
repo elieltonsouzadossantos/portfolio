@@ -433,6 +433,15 @@
     initParticles();
   }
 
+  // Rebuild with whatever font is available right now, ignoring the
+  // same-size guard above — used once the brand webfont finishes loading,
+  // since the geometry hasn't changed but the glyph itself has.
+  function rebuildForFont(){
+    if (w <= 0 || h <= 0) return;
+    buildTargets();
+    initParticles();
+  }
+
   function scheduleResize(){
     if (resizePending) return;
     resizePending = true;
@@ -510,7 +519,7 @@
     animate();
   }
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(resize);
+    document.fonts.ready.then(rebuildForFont);
   }
 })();
 </script>
