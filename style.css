@@ -84,24 +84,6 @@
     gap:48px;
     align-items:start;
   }
-  .eyebrow{
-    font-family:'Inter';
-    font-size:12px;
-    font-weight:600;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color:var(--data-light);
-    margin-bottom:20px;
-    display:inline-flex;align-items:center;gap:9px;
-    border:1px solid rgba(20,184,166,0.35);
-    background:rgba(20,184,166,0.06);
-    border-radius:999px;
-    padding:7px 16px 7px 12px;
-  }
-  .eyebrow::before{
-    content:'';width:6px;height:6px;border-radius:50%;background:var(--data-light);
-    display:inline-block;flex:none;
-  }
   .hero h1{
     font-size:clamp(27px,6.2vw,64px);
     line-height:0.98;
