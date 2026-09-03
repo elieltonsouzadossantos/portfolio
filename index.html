@@ -7,6 +7,15 @@
 <meta name="description" content="Elielton Santos — engenheiro de software e analista de dados aplicado a Power BI. Sites, catálogos e dashboards sob medida.">
 <link rel="icon" type="image/png" href="images/logo.png">
 <link rel="apple-touch-icon" href="images/logo.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Elidavy — Elielton Santos">
+<meta property="og:description" content="Engenheiro de software e analista de dados aplicado a Power BI. Sites, catálogos e dashboards sob medida.">
+<meta property="og:image" content="https://elieltonsouzadossantos.github.io/portfolio/images/og-image.png">
+<meta property="og:url" content="https://elieltonsouzadossantos.github.io/portfolio/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Elidavy — Elielton Santos">
+<meta name="twitter:description" content="Engenheiro de software e analista de dados aplicado a Power BI. Sites, catálogos e dashboards sob medida.">
+<meta name="twitter:image" content="https://elieltonsouzadossantos.github.io/portfolio/images/og-image.png">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -389,9 +398,10 @@
   if(!btn || !toast) return;
   var toastTimer;
   btn.addEventListener('click', async function(){
+    // Only the URL is shared: WhatsApp/Telegram/etc. unfurl it into a rich
+    // card (title + description + logo) straight from the page's Open Graph
+    // tags, instead of also dropping a separate plain-text message.
     var shareData = {
-      title: 'Elielton Santos — Engenharia de Software & Dados',
-      text: 'Confira o portfólio de Elielton Santos: desenvolvimento sob medida e decisão orientada por dados.',
       url: window.location.href
     };
     if (navigator.share) {
