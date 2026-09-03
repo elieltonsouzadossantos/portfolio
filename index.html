@@ -10,12 +10,27 @@
 <body>
 
 
-<div class="wrap nav">
-  <div class="nav-links">
-    <a href="#projetos">Projetos</a>
-    <a href="#dados">Dados</a>
-    <a href="#contato">Contato</a>
+<div class="wrap">
+  <div class="nav">
+    <div class="nav-left">
+      <button type="button" class="hamburger" id="hamburgerBtn" aria-label="Abrir menu" aria-expanded="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <div class="brand"><span class="mark">e</span><b>ELIDAVY</b></div>
+    </div>
+    <a class="cta-pill" href="#contato">Falar comigo</a>
   </div>
+  <div class="menu-panel" id="menuPanel">
+    <div class="menu-panel-inner">
+      <a href="#projetos">Projetos</a>
+      <a href="#dados">Dados</a>
+      <a href="#contato">Contato</a>
+    </div>
+  </div>
+</div>
+
+<div class="particle-section">
+  <canvas id="brandParticles" aria-hidden="true"></canvas>
 </div>
 
 <div class="wrap hero">
@@ -306,10 +321,6 @@
         <span class="lbl mono">BASE</span>
         <span class="val">Itamaraju, Bahia</span>
       </div>
-      <button type="button" class="share-btn" id="shareBtn" aria-label="Compartilhar este site">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg>
-        <span>Compartilhar</span>
-      </button>
     </div>
   </div>
 </section>
@@ -340,16 +351,41 @@
   </footer>
 </div>
 
-<a class="whatsapp-fab" href="https://wa.me/5573991203415" target="_blank" rel="noopener" aria-label="Falar com Elielton no WhatsApp">
-  <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91c0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.23 8.23 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23c-1.48 0-2.93-.39-4.19-1.15l-.3-.17l-3.12.82l.83-3.04l-.2-.32a8.2 8.2 0 0 1-1.26-4.38c.01-4.54 3.7-8.24 8.25-8.24M8.53 7.33c-.16 0-.43.06-.66.31c-.22.25-.87.86-.87 2.07c0 1.22.89 2.39 1 2.56c.12.17 1.76 2.67 4.25 3.73c.59.27 1.05.42 1.41.53c.59.19 1.13.16 1.56.1c.48-.07 1.46-.6 1.67-1.18c.21-.58.21-1.07.15-1.18c-.07-.1-.23-.16-.48-.28c-.25-.11-1.47-.72-1.69-.82c-.23-.08-.37-.12-.53.13c-.16.25-.64.81-.78.98c-.15.17-.29.19-.53.07c-.25-.13-1.05-.39-1.99-1.23c-.74-.66-1.23-1.47-1.38-1.72c-.14-.25-.02-.38.11-.51c.11-.11.25-.29.37-.43c.13-.14.17-.25.25-.41c.08-.17.04-.31-.02-.43c-.06-.11-.53-1.28-.73-1.75c-.19-.44-.39-.38-.53-.39c-.14 0-.3-.01-.46-.01"></path></svg>
-</a>
+<div class="fab-stack">
+  <button type="button" class="fab fab-share" id="shareBtn" aria-label="Compartilhar este site" title="Compartilhar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg>
+  </button>
+  <a class="fab fab-wa" href="https://wa.me/5573991203415" target="_blank" rel="noopener" aria-label="Falar com Elielton no WhatsApp" title="Falar no WhatsApp">
+    <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91c0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.23 8.23 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23c-1.48 0-2.93-.39-4.19-1.15l-.3-.17l-3.12.82l.83-3.04l-.2-.32a8.2 8.2 0 0 1-1.26-4.38c.01-4.54 3.7-8.24 8.25-8.24M8.53 7.33c-.16 0-.43.06-.66.31c-.22.25-.87.86-.87 2.07c0 1.22.89 2.39 1 2.56c.12.17 1.76 2.67 4.25 3.73c.59.27 1.05.42 1.41.53c.59.19 1.13.16 1.56.1c.48-.07 1.46-.6 1.67-1.18c.21-.58.21-1.07.15-1.18c-.07-.1-.23-.16-.48-.28c-.25-.11-1.47-.72-1.69-.82c-.23-.08-.37-.12-.53.13c-.16.25-.64.81-.78.98c-.15.17-.29.19-.53.07c-.25-.13-1.05-.39-1.99-1.23c-.74-.66-1.23-1.47-1.38-1.72c-.14-.25-.02-.38.11-.51c.11-.11.25-.29.37-.43c.13-.14.17-.25.25-.41c.08-.17.04-.31-.02-.43c-.06-.11-.53-1.28-.73-1.75c-.19-.44-.39-.38-.53-.39c-.14 0-.3-.01-.46-.01"></path></svg>
+  </a>
+</div>
+<div class="share-toast" id="shareToast">Link copiado!</div>
+
+<script>
+(function(){
+  var btn = document.getElementById('hamburgerBtn');
+  var panel = document.getElementById('menuPanel');
+  if(!btn || !panel) return;
+  btn.addEventListener('click', function(){
+    var isOpen = panel.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(isOpen));
+  });
+  var links = panel.querySelectorAll('a');
+  for (var i = 0; i < links.length; i++) {
+    links[i].addEventListener('click', function(){
+      panel.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+  }
+})();
+</script>
 
 <script>
 (function(){
   var btn = document.getElementById('shareBtn');
-  if(!btn) return;
-  var label = btn.querySelector('span');
-  var defaultLabel = label.textContent;
+  var toast = document.getElementById('shareToast');
+  if(!btn || !toast) return;
+  var toastTimer;
   btn.addEventListener('click', async function(){
     var shareData = {
       title: 'Elielton Santos — Engenharia de Software & Dados',
@@ -363,11 +399,119 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
         await navigator.clipboard.writeText(shareData.url);
-        label.textContent = 'Link copiado!';
-        setTimeout(function(){ label.textContent = defaultLabel; }, 2000);
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2200);
       } catch(e) {}
     }
   });
+})();
+</script>
+
+<script>
+(function(){
+  var canvas = document.getElementById('brandParticles');
+  if (!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var targets = [], particles = [];
+  var w = 0, h = 0;
+  var resizePending = false;
+
+  function resize(){
+    var rect = canvas.getBoundingClientRect();
+    var newW = Math.floor(rect.width);
+    var newH = Math.floor(rect.height);
+    if (newW <= 0 || newH <= 0) return;
+    if (newW === w && newH === h && targets.length) return;
+    w = newW; h = newH;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    buildTargets();
+    initParticles();
+  }
+
+  function scheduleResize(){
+    if (resizePending) return;
+    resizePending = true;
+    requestAnimationFrame(function(){ resizePending = false; resize(); });
+  }
+
+  function buildTargets(){
+    var off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    var octx = off.getContext('2d');
+    octx.fillStyle = '#fff';
+    var fontSize = h * 0.72;
+    octx.font = '800 ' + fontSize + 'px "Playfair Display", "Cormorant Garamond", Georgia, serif';
+    octx.textAlign = 'center';
+    octx.textBaseline = 'middle';
+    octx.fillText('e', w/2, h/2 + fontSize*0.04);
+    var data = octx.getImageData(0,0,w,h).data;
+    var pts = [];
+    var step = 2;
+    for (var y = 0; y < h; y += step){
+      for (var x = 0; x < w; x += step){
+        var idx = (y*w+x)*4 + 3;
+        if (data[idx] > 128){
+          pts.push({x: x, y: y});
+          pts.push({x: x + (Math.random()-0.5)*step, y: y + (Math.random()-0.5)*step});
+        }
+      }
+    }
+    targets = pts;
+  }
+
+  function initParticles(){
+    particles = targets.map(function(t){
+      return {
+        x: reduceMotion ? t.x : Math.random()*w,
+        y: reduceMotion ? t.y : Math.random()*h,
+        tx: t.x, ty: t.y,
+        size: Math.random()*1.3 + 0.5,
+        speed: Math.random()*0.04 + 0.02,
+        hue: Math.random() < 0.5 ? '45,212,191' : '20,184,166'
+      };
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    for (var i = 0; i < particles.length; i++){
+      var p = particles[i];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(' + p.hue + ',' + (0.55 + Math.random()*0.35) + ')';
+      ctx.fill();
+    }
+  }
+
+  function animate(){
+    for (var i = 0; i < particles.length; i++){
+      var p = particles[i];
+      p.x += (p.tx - p.x) * p.speed;
+      p.y += (p.ty - p.y) * p.speed;
+    }
+    draw();
+    requestAnimationFrame(animate);
+  }
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(scheduleResize).observe(canvas);
+  } else {
+    window.addEventListener('resize', scheduleResize);
+  }
+  resize();
+  if (reduceMotion) {
+    draw();
+  } else {
+    animate();
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(resize);
+  }
 })();
 </script>
 
