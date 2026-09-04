@@ -55,21 +55,21 @@
   }
   .nav-left{display:flex;align-items:center;gap:12px;}
   .hamburger{
-    width:36px;height:36px;
+    width:40px;height:40px;
     display:flex;align-items:center;justify-content:center;
-    border-radius:9px;border:1px solid var(--line-strong);
+    border-radius:10px;border:1px solid var(--line-strong);
     background:transparent;color:var(--paper);cursor:pointer;flex:none;
     transition:border-color 0.15s ease, color 0.15s ease;
   }
   .hamburger:hover{color:var(--data-light);border-color:var(--data-light);}
-  .brand{display:flex;align-items:center;gap:8px;font-size:14px;letter-spacing:0.08em;color:var(--paper-dim);}
+  .brand{display:flex;align-items:center;gap:8px;font-size:17px;letter-spacing:0.03em;color:var(--paper-dim);}
   .brand .mark{
-    width:24px;height:24px;border-radius:6px;
+    width:28px;height:28px;border-radius:7px;
     background:linear-gradient(135deg,var(--data-light),var(--data-dark));
     display:flex;align-items:center;justify-content:center;
-    font-family:'Inter',sans-serif;font-weight:800;font-size:14px;color:var(--ink);flex:none;
+    font-family:'Inter',sans-serif;font-weight:800;font-size:16px;color:var(--ink);flex:none;
   }
-  .brand b{color:var(--paper);font-weight:500;}
+  .brand b{color:var(--paper);font-weight:700;}
   .cta-pill{
     font-family:'Inter';font-weight:600;font-size:13px;color:var(--ink);
     background:linear-gradient(135deg, var(--data-light) 0%, var(--data) 55%, var(--data-dark) 100%);
