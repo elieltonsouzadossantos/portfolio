@@ -152,6 +152,30 @@
     box-shadow:0 8px 26px rgba(20,184,166,0.4);
     transform:translateY(-1px);
   }
+  .btn-pulse{
+    position:relative;
+  }
+  .btn-pulse::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    border-radius:999px;
+    box-shadow:0 0 0 0 rgba(45,212,191,0.55);
+    animation:btnPulseRing 2.2s ease-out infinite;
+    pointer-events:none;
+  }
+  .btn-pulse:hover::before{
+    animation-play-state:paused;
+    box-shadow:0 0 0 0 rgba(45,212,191,0);
+  }
+  @keyframes btnPulseRing{
+    0%{box-shadow:0 0 0 0 rgba(45,212,191,0.55);}
+    70%{box-shadow:0 0 0 14px rgba(45,212,191,0);}
+    100%{box-shadow:0 0 0 0 rgba(45,212,191,0);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .btn-pulse::before{animation:none;}
+  }
   .btn-ghost{
     border:1px solid var(--line-strong);
     color:var(--paper);
