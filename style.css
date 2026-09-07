@@ -819,10 +819,10 @@
   @media (min-width: 761px){
     .particle-section{
       background:transparent;
-      margin-bottom:-80px;
+      margin-bottom:-100px;
     }
     #brandParticles{
-      height:150px;
+      height:190px;
     }
     .hero{
       padding-top:20px;
