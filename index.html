@@ -486,24 +486,46 @@
     off.width = w; off.height = h;
     var octx = off.getContext('2d');
     octx.fillStyle = '#fff';
-    var fontSize = h * 0.72;
+    // Desktop/tablet gets a larger glyph (more of the canvas filled by the
+    // letter itself) plus a soft ambient halo of extra particles scattered
+    // around it (see below), so the mark reads as fuller rather than a
+    // small shape floating in a lot of empty canvas. Mobile keeps the
+    // original compact proportions untouched.
+    var isDesktop = !!(desktopLayoutQuery && desktopLayoutQuery.matches);
+    var fontSize = h * (isDesktop ? 1.25 : 0.72);
     currentFontSize = fontSize;
     octx.font = '800 ' + fontSize + 'px "Playfair Display", "Cormorant Garamond", Georgia, serif';
     octx.textAlign = 'center';
     octx.textBaseline = 'middle';
 
-    // On desktop/tablet (side-by-side hero), center the "e" over the
-    // headline column instead of the full-bleed canvas width, so it reads
-    // as sitting above the text rather than floating in the middle of the
-    // hero. Mobile (stacked layout) keeps it centered as before.
+    // On desktop/tablet (side-by-side hero), anchor the "e" above the "l"
+    // in "Desenvolvimento" (measured precisely via Range, so kerning and
+    // real font metrics are accounted for) instead of the headline's full
+    // center, so the particle mark sits further left, closer to where the
+    // headline text actually starts. Falls back to the headline's center
+    // if the DOM doesn't match what we expect. Mobile (stacked layout)
+    // keeps it centered as before.
     var anchorX = w/2;
     if (desktopLayoutQuery && desktopLayoutQuery.matches) {
       var heroH1 = document.querySelector('.hero h1');
       if (heroH1) {
-        var h1Rect = heroH1.getBoundingClientRect();
         var canvasRect = canvas.getBoundingClientRect();
         if (canvasRect.width > 0) {
-          anchorX = (h1Rect.left + h1Rect.right) / 2 - canvasRect.left;
+          anchorX = (heroH1.getBoundingClientRect().left + heroH1.getBoundingClientRect().right) / 2 - canvasRect.left;
+          var lineA = heroH1.querySelector('.a');
+          var textNode = lineA && lineA.firstChild;
+          if (textNode && textNode.nodeType === 3) {
+            var lIndex = textNode.textContent.indexOf('l');
+            if (lIndex !== -1) {
+              var range = document.createRange();
+              range.setStart(textNode, lIndex);
+              range.setEnd(textNode, lIndex + 1);
+              var letterRect = range.getBoundingClientRect();
+              if (letterRect.width > 0) {
+                anchorX = (letterRect.left + letterRect.right) / 2 - canvasRect.left;
+              }
+            }
+          }
         }
       }
     }
@@ -520,6 +542,28 @@
         }
       }
     }
+
+    // Ambient halo (desktop/tablet only): extra loosely-scattered points
+    // around the letter's own bounding box, rendered fainter and smaller
+    // (see initParticles/draw), so the canvas feels fuller without
+    // changing the legible shape of the "e" itself.
+    if (isDesktop && pts.length) {
+      var bx0=w, bx1=0, by0=h, by1=0;
+      for (var pi=0; pi<pts.length; pi++){
+        var pt = pts[pi];
+        if (pt.x<bx0) bx0=pt.x; if (pt.x>bx1) bx1=pt.x;
+        if (pt.y<by0) by0=pt.y; if (pt.y>by1) by1=pt.y;
+      }
+      var padX = (bx1-bx0)*0.85, padY = (by1-by0)*0.85;
+      var haloCount = Math.floor(pts.length * 0.35);
+      for (var hi=0; hi<haloCount; hi++){
+        var hx = bx0 - padX + Math.random()*((bx1-bx0)+padX*2);
+        var hy = by0 - padY + Math.random()*((by1-by0)+padY*2);
+        hx = Math.max(0, Math.min(w, hx));
+        hy = Math.max(0, Math.min(h, hy));
+        pts.push({x: hx, y: hy, halo: true});
+      }
+    }
     targets = pts;
   }
 
@@ -531,16 +575,18 @@
   function initParticles(){
     var isDesktopWobble = !!(desktopLayoutQuery && desktopLayoutQuery.matches);
     particles = targets.map(function(t){
+      var isHalo = !!t.halo;
       return {
         x: reduceMotion ? t.x : Math.random()*w,
         y: reduceMotion ? t.y : Math.random()*h,
         tx: t.x, ty: t.y,
-        size: Math.random()*1.3 + 0.5,
+        halo: isHalo,
+        size: isHalo ? (Math.random()*0.9 + 0.3) : (Math.random()*1.3 + 0.5),
         speed: Math.random()*0.05 + 0.025,
         hue: Math.random() < 0.5 ? '45,212,191' : '20,184,166',
         phase: Math.random()*Math.PI*2,
         phase2: Math.random()*Math.PI*2,
-        wobbleAmp: reduceMotion ? 0 : currentFontSize * (isDesktopWobble ? (0.012 + Math.random()*0.018) : (0.0324 + Math.random()*0.0463)),
+        wobbleAmp: reduceMotion ? 0 : (isHalo ? currentFontSize*(0.02 + Math.random()*0.035) : currentFontSize * (isDesktopWobble ? (0.012 + Math.random()*0.018) : (0.0324 + Math.random()*0.0463))),
         wobbleSpeed: Math.random()*1.1 + 0.7,
         wobbleSpeed2: Math.random()*2.3 + 1.3
       };
@@ -553,7 +599,7 @@
       var p = particles[i];
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(' + p.hue + ',' + (0.55 + Math.random()*0.35) + ')';
+      ctx.fillStyle = 'rgba(' + p.hue + ',' + (p.halo ? (0.10 + Math.random()*0.18) : (0.55 + Math.random()*0.35)) + ')';
       ctx.fill();
     }
   }
