@@ -814,3 +814,40 @@
     .kpi{border-left:none;border-top:1px solid var(--line);}
     .kpi:first-child{border-top:none;}
   }
+
+  /* ---------- hero refinements: desktop/tablet only, mobile stays untouched ---------- */
+  @media (min-width: 761px){
+    .particle-section{
+      background:transparent;
+      margin-bottom:-80px;
+    }
+    #brandParticles{
+      height:150px;
+    }
+    .hero{
+      padding-top:20px;
+      padding-bottom:100px;
+    }
+    .hero-grid{
+      grid-template-columns:1.9fr 1fr;
+      gap:40px;
+      align-items:end;
+    }
+    .id-card{
+      background:transparent;
+      border:none;
+      padding:0;
+    }
+    .id-photo{
+      border:1px solid rgba(255,255,255,0.14);
+    }
+    .id-name{
+      margin-top:18px;
+    }
+    .hero h1 .b{
+      color:transparent;
+      background:linear-gradient(135deg, var(--data-light) 0%, var(--data) 55%, var(--data-dark) 100%);
+      -webkit-background-clip:text;
+      background-clip:text;
+    }
+  }
