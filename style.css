@@ -190,7 +190,7 @@
   }
   .id-photo{
     width:100%;
-    aspect-ratio:7/6;
+    aspect-ratio:3/4;
     object-fit:cover;
     border-radius:14px;
     border:1px solid var(--line-strong);
