@@ -3,7 +3,7 @@
 **Projeto:** `elieltonsouzadossantos/portfolio`
 **URL de produção:** [elieltonsouzadossantos.github.io/portfolio](https://elieltonsouzadossantos.github.io/portfolio/)
 **Responsável técnico:** Elielton Santos
-**Versão do documento:** 1.3 · Setembro de 2026
+**Versão do documento:** 1.4 · Setembro de 2026
 
 Site-portfólio institucional — arquitetura, design system, funcionalidades e histórico de decisões.
 
@@ -251,6 +251,7 @@ Resumo, em formato de registro de decisão (no espírito do que a própria pági
 | Simplificação do conjunto de ícones do PWA | O conjunto inicial (8 tamanhos, 48–512px) seguia uma convenção antiga de Android hoje classificada como legada pela própria documentação do web.dev — mais arquivos que o necessário para manter. | Reduzido para exatamente o recomendado atualmente: 192, 384 e 512px (`purpose: "any"`) + 1 variante 512px `maskable`, tanto no site quanto no script gerador do kit (`generate_icons.py`). |
 | Botão "Instalar app" | Chrome só oferece instalação automática após engajamento mínimo, e Safari/iOS nunca oferece — sem um botão visível, a maioria dos visitantes nunca saberia que dá pra instalar. | Terceiro botão flutuante no `.fab-stack` existente (ver seção 10.7), visível só quando faz sentido (Android/desktop via `beforeinstallprompt`, iOS sempre, nunca em modo já instalado), isolado em script próprio. |
 | Botão de instalar reaparecendo após instalação real | Testado no aparelho real: o botão continuava aparecendo (sem efeito ao toque) mesmo já instalado, porque `beforeinstallprompt` nem sempre respeita a regra documentada de não disparar de novo. | `localStorage` guarda a confirmação de instalação (via `appinstalled` e via detecção de modo `standalone`), e o clique sem instalação pendente mostra um aviso em vez de não fazer nada (ver seção 10.7). |
+| Cache do service worker desatualizado após deploys | Reinstalar o app não resolveu o item acima porque o `CACHE_VERSION` nunca tinha sido incrementado nos commits anteriores — o aparelho continuava preso numa cópia antiga do `index.html`. | `CACHE_VERSION` subiu pra `"v2"` em `sw.js`, forçando a limpeza do cache antigo; comentário do arquivo ampliado pra deixar a regra explícita pra qualquer mudança de conteúdo, não só CSS/imagem. |
 
 ---
 
@@ -338,3 +339,9 @@ A correção aplicada foi guardar essa informação por conta própria, com duas
 2. **Aviso em vez de clique sem efeito:** se, mesmo assim, o botão aparecer sem ter uma instalação pendente pra oferecer (`deferredPrompt` nulo), o clique agora mostra um toast explicando que o app já parece instalado e onde encontrá-lo — reaproveitando o mesmo componente de toast (`showToast()`) usado na instrução do iPhone, em vez de duplicar código.
 
 Também um ajuste de precisão: a lembrança só é gravada quando a pessoa **aceita** a instalação (`outcome === 'accepted'`), nunca quando cancela — cancelar não significa que instalou.
+
+**Segunda causa encontrada — o próprio cache do service worker estava desatualizado:** depois de subir a correção acima, o Elielton testou desinstalando e reinstalando o app de verdade, e o botão continuou aparecendo mesmo dentro do app já instalado. A causa aqui foi diferente e mais básica: o `sw.js` usa estratégia "cache primeiro" (seção 10.3), e a própria documentação dele já avisava — "toda vez que o conteúdo mudar de verdade, suba o número da versão do cache" — regra que não foi seguida nos commits anteriores (nem ao adicionar o botão, nem na correção do `localStorage`). Resultado: o aparelho podia estar preso numa cópia de `index.html` de antes dessas correções, já que reinstalar o ícone da tela inicial não limpa o cache do navegador — só o `CACHE_VERSION` faz isso, forçando o service worker a descartar a versão antiga e buscar a atual.
+
+Correção: `CACHE_VERSION` subiu de `"v1"` para `"v2"` em `sw.js`, e o comentário do arquivo foi ampliado pra deixar explícito que isso vale pra qualquer mudança em `index.html`/JS, não só CSS/imagens (era isso que faltava ficar claro). Validado via Playwright simulando a transição real de uma versão pra outra (registra o service worker antigo de verdade, troca o arquivo servido pela versão nova, força a atualização, e confirma que o cache antigo é apagado e o novo já contém o `index.html` atual, com o botão e a correção do `localStorage` inclusos).
+
+**Lição registrada pro kit:** ao reaproveitar esse `sw.js` em outro projeto, subir o `CACHE_VERSION` precisa virar parte do checklist de qualquer deploy que mude `PRECACHE_ASSETS` ou seu conteúdo — não só quando "parece" uma mudança visual grande.

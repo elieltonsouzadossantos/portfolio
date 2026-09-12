@@ -13,12 +13,15 @@
  * primeiro" só pra CSS/imagens/ícones. Ver DOCUMENTACAO_TECNICA.md, seção
  * de PWA, pra mais contexto dessa decisão.
  *
- * Toda vez que o conteúdo precache abaixo mudar de verdade (nova imagem,
- * novo CSS), suba o número da versão do cache — isso invalida o cache
- * antigo nos aparelhos que já instalaram o app.
+ * Toda vez que QUALQUER arquivo da lista PRECACHE_ASSETS abaixo mudar de
+ * verdade — nova imagem, novo CSS, e também mudanças no próprio
+ * index.html/JS (fácil de esquecer, já aconteceu aqui) — suba o número da
+ * versão do cache. Sem isso, quem já instalou o app continua preso numa
+ * cópia antiga até o navegador decidir atualizar o cache sozinho em
+ * segundo plano, o que pode levar mais de uma visita.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `elidavy-portfolio-${CACHE_VERSION}`;
 
 // Arquivos essenciais pra a página abrir por completo mesmo offline.
