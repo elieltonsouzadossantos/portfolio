@@ -767,6 +767,11 @@
   .fab:hover{transform:scale(1.06);box-shadow:0 10px 28px rgba(0,0,0,0.45);}
   .fab-share{background:var(--surface);border:1px solid var(--line-strong);color:var(--data-light);}
   .fab-wa{width:56px;height:56px;background:#25D366;color:#fff;border:none;}
+  /* Botão de instalar: mesma base ".fab" das outras duas, só muda cor de
+     fundo/ícone (fundo teal, ícone escuro — mesma combinação já usada no
+     cta-pill e no mark da logo do cabeçalho). Fica oculto por padrão
+     (atributo "hidden") — o script de instalação decide quando exibi-lo. */
+  .fab-install{width:52px;height:52px;background:var(--data);color:var(--ink);border:none;}
   .share-toast{
     position:fixed;left:50%;bottom:26px;
     transform:translate(-50%,20px);
@@ -777,6 +782,9 @@
     transition:0.3s;z-index:1000;white-space:nowrap;
   }
   .share-toast.show{opacity:1;transform:translate(-50%,0);}
+  /* Variante do toast pra instrução de instalação no iOS — mesma base,
+     só permite quebrar linha e limita a largura (o texto é mais longo). */
+  .install-toast{white-space:normal;max-width:280px;line-height:1.5;text-align:center;}
 
   @media (max-width: 760px){
     .wrap{padding:0 24px;}

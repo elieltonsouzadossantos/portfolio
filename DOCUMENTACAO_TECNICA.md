@@ -3,7 +3,7 @@
 **Projeto:** `elieltonsouzadossantos/portfolio`
 **URL de produção:** [elieltonsouzadossantos.github.io/portfolio](https://elieltonsouzadossantos.github.io/portfolio/)
 **Responsável técnico:** Elielton Santos
-**Versão do documento:** 1.0 · Setembro de 2026
+**Versão do documento:** 1.2 · Setembro de 2026
 
 Site-portfólio institucional — arquitetura, design system, funcionalidades e histórico de decisões.
 
@@ -20,6 +20,7 @@ Site-portfólio institucional — arquitetura, design system, funcionalidades e 
 7. [SEO, favicon e metadados de compartilhamento social](#7-seo-favicon-e-metadados-de-compartilhamento-social)
 8. [Registro de decisões técnicas](#8-registro-de-decisões-técnicas)
 9. [Manutenção e recomendações futuras](#9-manutenção-e-recomendações-futuras)
+10. [Progressive Web App (PWA)](#10-progressive-web-app-pwa)
 
 ---
 
@@ -246,6 +247,9 @@ Resumo, em formato de registro de decisão (no espírito do que a própria pági
 | Tamanho do cabeçalho (hambúrguer/marca) | Ícone, marca e "ELIDAVY" pareciam pequenos frente a referência de mercado (Asimov Academy). | Aumento medido por comparação de pixels; ajuste moderado de tamanho (40px/17px) combinado com peso de fonte maior (700), validado sem sobreposição em 320/360/375/390/1280px. |
 | Animação de partículas contínua | Efeito de partículas formava o "e" e então parava de se mover. | Alvo de cada partícula passou a oscilar continuamente (wobble de duas frequências); intensidade "nebulosa" aprovada após 3 opções testadas. |
 | Seção de depoimentos | Seção "Feedback dos clientes" existia no layout mas estava vazia. | Depoimento real da cliente Andreia, reproduzido como bolha de conversa do WhatsApp reestilizada na paleta do site. |
+| PWA (instalável na tela inicial) | O site só existia como link — sem ícone próprio, sem abrir em tela cheia, sem funcionar offline. | `manifest.json` + `sw.js` com estratégia "cache primeiro" (ver seção 10), ícones gerados a partir da logo existente. Zero mudança na estrutura de conteúdo do site. |
+| Simplificação do conjunto de ícones do PWA | O conjunto inicial (8 tamanhos, 48–512px) seguia uma convenção antiga de Android hoje classificada como legada pela própria documentação do web.dev — mais arquivos que o necessário para manter. | Reduzido para exatamente o recomendado atualmente: 192, 384 e 512px (`purpose: "any"`) + 1 variante 512px `maskable`, tanto no site quanto no script gerador do kit (`generate_icons.py`). |
+| Botão "Instalar app" | Chrome só oferece instalação automática após engajamento mínimo, e Safari/iOS nunca oferece — sem um botão visível, a maioria dos visitantes nunca saberia que dá pra instalar. | Terceiro botão flutuante no `.fab-stack` existente (ver seção 10.7), visível só quando faz sentido (Android/desktop via `beforeinstallprompt`, iOS sempre, nunca em modo já instalado), isolado em script próprio. |
 
 ---
 
@@ -269,3 +273,59 @@ Resumo, em formato de registro de decisão (no espírito do que a própria pági
 - Formulário de contato direto na página (hoje o contato depende inteiramente de links externos para WhatsApp/e-mail).
 - Página ou seção dedicada por projeto, com mais detalhes técnicos de cada entrega (hoje concentrados no case da Andreia).
 - Métricas de acesso (ex.: um contador de visitas simples), já que o site não possui hoje nenhuma forma de analytics.
+- Aplicar o mesmo "kit PWA" (seção 10) nos próximos projetos de cliente, trocando a estratégia de cache de "estática" para "conteúdo dinâmico" onde fizer sentido (ex.: catálogo de produtos atualizado com frequência).
+
+---
+
+## 10. Progressive Web App (PWA)
+
+### 10.1 Motivação
+
+Até então, o portfólio existia só como um link — sem ícone próprio na tela do celular de quem recebe, sem abrir em tela cheia, e sem funcionar sem internet. A decisão foi tornar o site instalável como PWA (Progressive Web App), mantendo toda a estrutura de conteúdo do site intacta: a implementação inteira se resume a três arquivos novos e duas linhas a mais no `<head>` do `index.html` — nenhuma seção, script ou estilo existente foi alterado.
+
+### 10.2 Arquivos adicionados
+
+| Arquivo | Função |
+|---|---|
+| `manifest.json` | Metadados do app (nome, ícones, cor de tema, modo de exibição) que o navegador lê para permitir a instalação. |
+| `sw.js` | Service worker — intercepta requisições e decide quando servir do cache local e quando buscar da rede. |
+| `images/icons/icon-*.png` | Conjunto de ícones gerados a partir da logo existente (`images/logo.png`): 192, 384 e 512px (`purpose: "any"`), mais uma variante `icon-512-maskable.png` para adaptive icons do Android. |
+
+No `index.html`, foram adicionadas apenas: a tag `<link rel="manifest">`, uma `<meta name="theme-color">`, a troca do `apple-touch-icon` para o ícone de 192px (mais nítido que a logo original de 96px), e um bloco `<script>` no fim do `<body>` registrando o `sw.js` — só executa se o navegador suportar a API (`if ("serviceWorker" in navigator)`), sem quebrar navegadores antigos.
+
+### 10.3 Estratégia de cache — por que "cache primeiro"
+
+Existem duas estratégias comuns de service worker: **"cache primeiro"** (responde do cache instantaneamente e atualiza em segundo plano) e **"rede primeiro"** (busca a rede sempre, só cai pro cache se a rede falhar). A escolha aqui foi **cache primeiro para tudo**, porque o portfólio é uma página única cujo conteúdo muda raramente — não há vantagem em esperar a rede toda vez, e o ganho é abrir instantaneamente, inclusive offline (útil, por exemplo, mostrando o portfólio pra um cliente num local com sinal ruim).
+
+**Nota para reaproveitar em projeto de cliente:** um catálogo de produtos atualizado com frequência (como o da Andreia) exigiria o modo inverso para o conteúdo dinâmico — "rede primeiro" pros dados que mudam, mantendo "cache primeiro" só para CSS/imagens/ícones que não mudam a cada visita. O arquivo `sw.js` já traz esse comentário registrado, para não ser esquecido no próximo projeto.
+
+### 10.4 Ícones — geração, tamanhos e o problema do ícone "maskable"
+
+Os ícones foram gerados a partir da logo existente (`images/logo.png`, 96×96px) por um script Python reaproveitável, `generate_icons.py` (mantido fora deste repositório, no kit interno da Elidavy — ver seção 10.6), que faz upscaling para os tamanhos definidos.
+
+**Tamanhos:** a primeira versão gerou 8 tamanhos (48 a 512px), cobrindo convenções antigas de Android. Revisando a documentação atual do web.dev, esse conjunto amplo é explicitamente apontado como legado — desnecessário hoje, quando apenas 192 e 512px são exigidos pela spec e 384px é a recomendação intermediária para telas de densidade alta. O conjunto foi então reduzido para **192, 384 e 512px (`purpose: "any"`) + 1 ícone 512px `maskable`**, alinhando o projeto com a orientação mais atual em vez de uma convenção defasada, e reduzindo o número de arquivos a manter por projeto (de 9 para 4).
+
+O ícone `maskable` (usado pelo Android para adaptive icons, onde o sistema aplica seu próprio recorte — círculo, "squircle" etc. — por cima do ícone) exigiu um cuidado extra: a primeira tentativa, colando a logo original redimensionada sobre um fundo sólido, deixou um contorno fantasma fino visível (pixels da borda arredondada da logo original, semitransparentes, "vazando" no resultado). A correção foi isolar só a marca (o "e" branco) usando **brilho E opacidade do pixel original juntos** — não só um dos dois — antes de redesenhá-la, limpa, centralizada dentro da zona segura de 60% recomendada para adaptive icons.
+
+### 10.5 Validação
+
+Testado localmente servindo os arquivos por HTTP (o service worker exige HTTPS ou localhost — não funciona abrindo o HTML direto como `file://`): manifest carregado sem erro, service worker instalado e ativado, os arquivos essenciais pré-armazenados em cache, e o site recarregado com sucesso em modo totalmente offline (simulado), mostrando o conteúdo completo da página. Antes de publicar, validar também com o Lighthouse (aba "Application"/"Lighthouse" do DevTools do Chrome) para conferir a nota de "Installable".
+
+### 10.6 O "kit PWA" para próximos projetos
+
+Pensando em não repetir esse trabalho do zero a cada cliente novo, os três arquivos (`manifest.json`, `sw.js`, `generate_icons.py`) foram estruturados como um kit reaproveitável: os dois primeiros com comentários marcando o que precisa ser ajustado por projeto (nome, cores, lista de arquivos pré-cacheados), e o script de ícones aceitando qualquer logo de entrada via linha de comando. Reaproveitar em um projeto novo é: copiar os três arquivos, ajustar `manifest.json` e a lista `PRECACHE_ASSETS` do `sw.js`, rodar o script de ícones apontando pra logo do cliente, e linkar o manifest + registrar o service worker no HTML — sem reconstruir a lógica do zero.
+
+### 10.7 Botão "Instalar app"
+
+**Motivação:** o critério de instalabilidade do Chrome exige engajamento mínimo do visitante (ao menos um toque/clique e ~30s de permanência) antes de oferecer a instalação por conta própria — e o Safari/iOS nunca oferece isso automaticamente, exigindo o passo manual "Compartilhar → Adicionar à Tela de Início". Sem um botão visível, boa parte dos visitantes nunca saberia que dá pra instalar. É uma técnica já usada por sistemas profissionais reais (ex.: OneSignal, Progressier documentam o padrão), então foi adotado aqui.
+
+**Onde entra:** um terceiro botão flutuante (`.fab-install`), no mesmo `.fab-stack` dos botões de compartilhar e WhatsApp já existentes — reaproveita a base visual `.fab` (tamanho, formato circular, sombra) e só define o que muda (cor de fundo `--data` e ícone escuro `--ink`, a mesma combinação já usada no `cta-pill` e no mark da logo do cabeçalho). Fica no topo da pilha, com o WhatsApp — provavelmente o botão mais usado pelos visitantes — mantido na posição mais próxima do canto, sem alterar sua posição.
+
+**Comportamento:** o botão nasce oculto (atributo `hidden`) e só aparece quando faz sentido:
+- **Android/desktop com Chromium:** some por padrão, some visível quando o navegador dispara `beforeinstallprompt` (ou seja, só depois que o próprio Chrome já considerou o site instalável); o clique dispara `prompt()` e o botão some de novo ao final do fluxo (aceito ou recusado).
+- **iOS (Safari e demais navegadores no iPhone/iPad):** como não existe `beforeinstallprompt` nesse sistema, o botão aparece direto e o clique mostra um aviso curto com o passo manual, reaproveitando o mesmo componente de toast já usado no botão de compartilhar (`.share-toast`), com uma variante (`.install-toast`) só pra permitir texto mais longo.
+- **App já instalado** (aberto em modo `standalone`, via `display-mode` ou `navigator.standalone`): o botão nunca aparece — instalar de novo não faz sentido.
+
+**Isolamento:** toda a lógica vive num `<script>` próprio, sem tocar no código do botão de compartilhar/WhatsApp nem depender dele — cada botão do `fab-stack` cuida só da sua própria responsabilidade, seguindo o mesmo princípio de separação já aplicado ao manifest/service worker (arquivos aditivos, nada reescrito).
+
+**Validação:** testado via Playwright simulando os quatro cenários — carregamento normal (botão oculto), disparo manual do evento `beforeinstallprompt` (botão aparece e some após o clique), `display-mode: standalone` simulado (botão permanece oculto) e user-agent de iPhone (botão aparece direto e o toque exibe o toast de instrução).

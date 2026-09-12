@@ -6,7 +6,9 @@
 <title>Elidavy</title>
 <meta name="description" content="Elielton Santos — engenheiro de software e analista de dados aplicado a Power BI. Sites, catálogos e dashboards sob medida.">
 <link rel="icon" type="image/png" href="images/logo.png">
-<link rel="apple-touch-icon" href="images/logo.png">
+<link rel="apple-touch-icon" href="images/icons/icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050505">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Elidavy — Elielton Santos">
 <meta property="og:description" content="Engenheiro de software e analista de dados aplicado a Power BI. Sites, catálogos e dashboards sob medida.">
@@ -382,6 +384,9 @@
 </div>
 
 <div class="fab-stack">
+  <button type="button" class="fab fab-install" id="installBtn" aria-label="Instalar app" title="Instalar app" hidden>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 19h14"></path></svg>
+  </button>
   <button type="button" class="fab fab-share" id="shareBtn" aria-label="Compartilhar este site" title="Compartilhar">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"></path></svg>
   </button>
@@ -390,6 +395,7 @@
   </a>
 </div>
 <div class="share-toast" id="shareToast">Link copiado!</div>
+<div class="share-toast install-toast" id="installToast">No Safari: toque em <b>Compartilhar</b> e depois em <b>“Adicionar à Tela de Início”</b></div>
 
 <script>
 (function(){
@@ -435,6 +441,65 @@
         toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2200);
       } catch(e) {}
     }
+  });
+})();
+</script>
+
+<script>
+(function(){
+  // Botão de instalar do PWA — isolado do restante do fab-stack: não sabe
+  // nada sobre compartilhar/WhatsApp, só cuida da própria instalação.
+  var btn = document.getElementById('installBtn');
+  var toast = document.getElementById('installToast');
+  if (!btn) return;
+
+  function isStandalone(){
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  }
+
+  // Já aberto como app instalado: instalar de novo não faz sentido.
+  if (isStandalone()) return;
+
+  var isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+  var toastTimer;
+
+  if (isIOS) {
+    // Safari/iOS nunca dispara "beforeinstallprompt" — não existe instalação
+    // automática nesse navegador. O botão fica visível e, ao toque, mostra
+    // o passo manual (Compartilhar > Adicionar à Tela de Início).
+    btn.hidden = false;
+    btn.addEventListener('click', function(){
+      if (!toast) return;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 4500);
+    });
+    return;
+  }
+
+  // Android/desktop com Chromium: só mostra o botão quando o próprio
+  // navegador sinalizar que o site já cumpriu o critério de instalabilidade
+  // (manifest válido + service worker + engajamento mínimo do usuário).
+  var deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(event){
+    event.preventDefault();
+    deferredPrompt = event;
+    btn.hidden = false;
+  });
+
+  btn.addEventListener('click', function(){
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(function(){
+      deferredPrompt = null;
+      btn.hidden = true;
+    });
+  });
+
+  // Instalado com sucesso: o botão deixou de fazer sentido.
+  window.addEventListener('appinstalled', function(){
+    btn.hidden = true;
+    deferredPrompt = null;
   });
 })();
 </script>
@@ -636,6 +701,18 @@
     document.fonts.ready.then(rebuildForFont);
   }
 })();
+</script>
+
+<script>
+// Registra o service worker do PWA (ver sw.js). A checagem de suporte evita
+// erro em navegadores antigos que não têm a API.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function (err) {
+      console.warn("Falha ao registrar o service worker:", err);
+    });
+  });
+}
 </script>
 
 </body>
