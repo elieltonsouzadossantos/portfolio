@@ -3,7 +3,7 @@
 **Projeto:** `elieltonsouzadossantos/portfolio`
 **URL de produção:** [elieltonsouzadossantos.github.io/portfolio](https://elieltonsouzadossantos.github.io/portfolio/)
 **Responsável técnico:** Elielton Santos
-**Versão do documento:** 1.2 · Setembro de 2026
+**Versão do documento:** 1.3 · Setembro de 2026
 
 Site-portfólio institucional — arquitetura, design system, funcionalidades e histórico de decisões.
 
@@ -250,6 +250,7 @@ Resumo, em formato de registro de decisão (no espírito do que a própria pági
 | PWA (instalável na tela inicial) | O site só existia como link — sem ícone próprio, sem abrir em tela cheia, sem funcionar offline. | `manifest.json` + `sw.js` com estratégia "cache primeiro" (ver seção 10), ícones gerados a partir da logo existente. Zero mudança na estrutura de conteúdo do site. |
 | Simplificação do conjunto de ícones do PWA | O conjunto inicial (8 tamanhos, 48–512px) seguia uma convenção antiga de Android hoje classificada como legada pela própria documentação do web.dev — mais arquivos que o necessário para manter. | Reduzido para exatamente o recomendado atualmente: 192, 384 e 512px (`purpose: "any"`) + 1 variante 512px `maskable`, tanto no site quanto no script gerador do kit (`generate_icons.py`). |
 | Botão "Instalar app" | Chrome só oferece instalação automática após engajamento mínimo, e Safari/iOS nunca oferece — sem um botão visível, a maioria dos visitantes nunca saberia que dá pra instalar. | Terceiro botão flutuante no `.fab-stack` existente (ver seção 10.7), visível só quando faz sentido (Android/desktop via `beforeinstallprompt`, iOS sempre, nunca em modo já instalado), isolado em script próprio. |
+| Botão de instalar reaparecendo após instalação real | Testado no aparelho real: o botão continuava aparecendo (sem efeito ao toque) mesmo já instalado, porque `beforeinstallprompt` nem sempre respeita a regra documentada de não disparar de novo. | `localStorage` guarda a confirmação de instalação (via `appinstalled` e via detecção de modo `standalone`), e o clique sem instalação pendente mostra um aviso em vez de não fazer nada (ver seção 10.7). |
 
 ---
 
@@ -329,3 +330,11 @@ Pensando em não repetir esse trabalho do zero a cada cliente novo, os três arq
 **Isolamento:** toda a lógica vive num `<script>` próprio, sem tocar no código do botão de compartilhar/WhatsApp nem depender dele — cada botão do `fab-stack` cuida só da sua própria responsabilidade, seguindo o mesmo princípio de separação já aplicado ao manifest/service worker (arquivos aditivos, nada reescrito).
 
 **Validação:** testado via Playwright simulando os quatro cenários — carregamento normal (botão oculto), disparo manual do evento `beforeinstallprompt` (botão aparece e some após o clique), `display-mode: standalone` simulado (botão permanece oculto) e user-agent de iPhone (botão aparece direto e o toque exibe o toast de instrução).
+
+**Correção pós-uso real — o app já instalado nem sempre esconde o botão:** depois de instalar o app de verdade no celular, o próprio Elielton reportou que o botão continuava aparecendo em visitas seguintes, sem fazer nada ao toque. Pesquisando na documentação (MDN, guia "Trigger installation from your PWA"), o evento `beforeinstallprompt` é confirmadamente **não-padrão** (só Chromium) e a própria doc reconhece a regra de "não disparar se o app já estiver instalado" — só que isso não é seguido de forma 100% consistente em todo navegador/versão, exatamente o que aconteceu aqui. A alternativa oficial (`getInstalledRelatedApps()`) foi descartada por ser experimental, ter suporte limitado e exigir uma configuração de "app relacionado" desproporcional pro caso (pensada pra quando existe também um app nativo na loja).
+
+A correção aplicada foi guardar essa informação por conta própria, com duas camadas:
+1. **Lembrança em `localStorage`** (`pwa-installed`): gravada quando o evento `appinstalled` dispara (sinal mais confiável de instalação concluída, disparado independente de qual caminho levou à instalação) e também quando a própria página carrega já em modo `standalone` — isso cobre o iPhone, onde não existe nenhum evento avisando que a pessoa adicionou manualmente à tela de início. Em toda visita seguinte, a página confere essa lembrança antes de decidir se tenta mostrar o botão, em vez de confiar só no comportamento do navegador. Todo o acesso ao `localStorage` está em `try/catch` — se não estiver disponível (ex.: navegação privada), a única consequência é perder essa memória entre sessões, nada quebra.
+2. **Aviso em vez de clique sem efeito:** se, mesmo assim, o botão aparecer sem ter uma instalação pendente pra oferecer (`deferredPrompt` nulo), o clique agora mostra um toast explicando que o app já parece instalado e onde encontrá-lo — reaproveitando o mesmo componente de toast (`showToast()`) usado na instrução do iPhone, em vez de duplicar código.
+
+Também um ajuste de precisão: a lembrança só é gravada quando a pessoa **aceita** a instalação (`outcome === 'accepted'`), nunca quando cancela — cancelar não significa que instalou.

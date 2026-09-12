@@ -395,7 +395,7 @@
   </a>
 </div>
 <div class="share-toast" id="shareToast">Link copiado!</div>
-<div class="share-toast install-toast" id="installToast">No Safari: toque em <b>Compartilhar</b> e depois em <b>“Adicionar à Tela de Início”</b></div>
+<div class="share-toast install-toast" id="installToast"></div>
 
 <script>
 (function(){
@@ -453,15 +453,51 @@
   var toast = document.getElementById('installToast');
   if (!btn) return;
 
+  // "Lembrança" de que esse aparelho já instalou o app, guardada no próprio
+  // navegador. Existe porque o beforeinstallprompt, por ser um evento
+  // não-padrão (só Chromium), nem sempre respeita a regra documentada de
+  // "não disparar de novo se o app já estiver instalado" — em vez de
+  // confiar só nisso, a gente também guarda essa informação por conta
+  // própria. Tudo dentro de try/catch: se o localStorage não estiver
+  // disponível (ex.: navegação privada), a pior consequência é perder essa
+  // memória entre sessões — nada quebra.
+  var STORAGE_KEY = 'pwa-installed';
+  function getInstalledFlag(){
+    try { return window.localStorage.getItem(STORAGE_KEY) === '1'; }
+    catch (e) { return false; }
+  }
+  function setInstalledFlag(){
+    try { window.localStorage.setItem(STORAGE_KEY, '1'); }
+    catch (e) { /* sem localStorage disponível — segue sem gravar */ }
+  }
+
   function isStandalone(){
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   }
 
-  // Já aberto como app instalado: instalar de novo não faz sentido.
-  if (isStandalone()) return;
+  // Já aberto como app instalado: instalar de novo não faz sentido — e
+  // aproveita pra gravar a lembrança, útil sobretudo no iPhone, onde não
+  // existe nenhum evento avisando que a instalação manual aconteceu.
+  if (isStandalone()) {
+    setInstalledFlag();
+    return;
+  }
+
+  // Visita anterior já registrou que esse aparelho instalou: nem tenta
+  // mostrar o botão, independente do que o navegador decidir fazer com o
+  // evento de instalação dessa vez.
+  if (getInstalledFlag()) return;
+
+  var toastTimer;
+  function showToast(html){
+    if (!toast) return;
+    toast.innerHTML = html;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 4500);
+  }
 
   var isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-  var toastTimer;
 
   if (isIOS) {
     // Safari/iOS nunca dispara "beforeinstallprompt" — não existe instalação
@@ -469,10 +505,7 @@
     // o passo manual (Compartilhar > Adicionar à Tela de Início).
     btn.hidden = false;
     btn.addEventListener('click', function(){
-      if (!toast) return;
-      toast.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 4500);
+      showToast('No Safari: toque em <b>Compartilhar</b> e depois em <b>“Adicionar à Tela de Início”</b>');
     });
     return;
   }
@@ -488,18 +521,33 @@
   });
 
   btn.addEventListener('click', function(){
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.finally(function(){
-      deferredPrompt = null;
+    if (!deferredPrompt) {
+      // O navegador não tem uma instalação pendente pra oferecer. O caso
+      // mais provável é o app já estar instalado nesse aparelho — em vez
+      // de um clique sem efeito nenhum, explica o que fazer.
+      showToast('Esse app já parece estar instalado — abra pelo ícone salvo na tela inicial do seu aparelho.');
+      return;
+    }
+    var promptEvent = deferredPrompt;
+    deferredPrompt = null;
+    promptEvent.prompt();
+    promptEvent.userChoice.then(function(choice){
       btn.hidden = true;
+      // Só grava como "instalado" se a pessoa realmente aceitou — se ela
+      // cancelou a caixinha do navegador, não instalou de verdade.
+      if (choice && choice.outcome === 'accepted') {
+        setInstalledFlag();
+      }
     });
   });
 
-  // Instalado com sucesso: o botão deixou de fazer sentido.
+  // Instalado com sucesso (por esse botão ou por qualquer outro caminho,
+  // como o próprio ícone de instalar da barra de endereço): sinal mais
+  // confiável de que a instalação se completou de fato.
   window.addEventListener('appinstalled', function(){
     btn.hidden = true;
     deferredPrompt = null;
+    setInstalledFlag();
   });
 })();
 </script>
