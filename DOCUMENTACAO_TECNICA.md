@@ -3,7 +3,7 @@
 **Projeto:** `elieltonsouzadossantos/portfolio`
 **URL de produção:** [elieltonsouzadossantos.github.io/portfolio](https://elieltonsouzadossantos.github.io/portfolio/)
 **Responsável técnico:** Elielton Santos
-**Versão do documento:** 1.4 · Setembro de 2026
+**Versão do documento:** 1.5 · Setembro de 2026
 
 Site-portfólio institucional — arquitetura, design system, funcionalidades e histórico de decisões.
 
@@ -252,6 +252,7 @@ Resumo, em formato de registro de decisão (no espírito do que a própria pági
 | Botão "Instalar app" | Chrome só oferece instalação automática após engajamento mínimo, e Safari/iOS nunca oferece — sem um botão visível, a maioria dos visitantes nunca saberia que dá pra instalar. | Terceiro botão flutuante no `.fab-stack` existente (ver seção 10.7), visível só quando faz sentido (Android/desktop via `beforeinstallprompt`, iOS sempre, nunca em modo já instalado), isolado em script próprio. |
 | Botão de instalar reaparecendo após instalação real | Testado no aparelho real: o botão continuava aparecendo (sem efeito ao toque) mesmo já instalado, porque `beforeinstallprompt` nem sempre respeita a regra documentada de não disparar de novo. | `localStorage` guarda a confirmação de instalação (via `appinstalled` e via detecção de modo `standalone`), e o clique sem instalação pendente mostra um aviso em vez de não fazer nada (ver seção 10.7). |
 | Cache do service worker desatualizado após deploys | Reinstalar o app não resolveu o item acima porque o `CACHE_VERSION` nunca tinha sido incrementado nos commits anteriores — o aparelho continuava preso numa cópia antiga do `index.html`. | `CACHE_VERSION` subiu pra `"v2"` em `sw.js`, forçando a limpeza do cache antigo; comentário do arquivo ampliado pra deixar a regra explícita pra qualquer mudança de conteúdo, não só CSS/imagem. |
+| Botão de instalar visível mesmo dentro do app já instalado | Confirmado no aparelho real (card próprio nos "apps recentes"): o CSS `.fab { display: flex }` vencia o `display: none` padrão do atributo `hidden`, mesmo com o JavaScript escondendo o botão corretamente. | Regra `.fab[hidden]{display:none;}` adicionada em `style.css`, com mais especificidade que `.fab` sozinha — garante que qualquer botão da pilha marcado como `hidden` realmente suma da tela. |
 
 ---
 
@@ -345,3 +346,7 @@ Também um ajuste de precisão: a lembrança só é gravada quando a pessoa **ac
 Correção: `CACHE_VERSION` subiu de `"v1"` para `"v2"` em `sw.js`, e o comentário do arquivo foi ampliado pra deixar explícito que isso vale pra qualquer mudança em `index.html`/JS, não só CSS/imagens (era isso que faltava ficar claro). Validado via Playwright simulando a transição real de uma versão pra outra (registra o service worker antigo de verdade, troca o arquivo servido pela versão nova, força a atualização, e confirma que o cache antigo é apagado e o novo já contém o `index.html` atual, com o botão e a correção do `localStorage` inclusos).
 
 **Lição registrada pro kit:** ao reaproveitar esse `sw.js` em outro projeto, subir o `CACHE_VERSION` precisa virar parte do checklist de qualquer deploy que mude `PRECACHE_ASSETS` ou seu conteúdo — não só quando "parece" uma mudança visual grande.
+
+**Terceira causa encontrada — CSS vencendo o atributo `hidden`:** mesmo depois das duas correções acima, o botão continuou aparecendo dentro do app já instalado (confirmado abrindo pelo ícone real da tela inicial, verificado inclusive pelo card próprio nos "apps recentes" do Android, distinguindo de uma aba do Chrome). Dessa vez a causa era puramente CSS, não JavaScript: o atributo HTML `hidden` normalmente esconde um elemento através de um estilo padrão que o próprio navegador aplica (`display: none`) — mas regras de CSS escritas pelo desenvolvedor (nesse caso, `.fab { display: flex; }`, compartilhada pelos três botões) sempre vencem esse estilo padrão do navegador, independente de qual seja "mais específica". Ou seja, o JavaScript estava certo o tempo todo (`isStandalone()` detectava corretamente o app instalado e nem chegava a religar o clique do botão), mas o CSS ignorava o `hidden` e mostrava o botão do mesmo jeito — o que também explica o clique não fazer nada: não havia mais nenhum listener de clique ligado àquele botão, porque o script já tinha retornado mais cedo.
+
+Correção: adicionada a regra `.fab[hidden]{display:none;}` em `style.css`, logo após a definição de `.fab` — como ela tem mais especificidade que `.fab` sozinha, garante que o atributo `hidden` funcione de verdade em qualquer botão da pilha, não só no de instalar. Confirmado via Playwright que, com `hidden` ativo, o `display` computado do elemento agora é `none` (antes ficava `flex`, mesmo escondido), e que os outros dois botões (sem o atributo `hidden`) continuam aparecendo normalmente — a regra não afeta ninguém além de quem realmente precisa sumir.

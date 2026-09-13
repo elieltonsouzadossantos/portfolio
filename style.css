@@ -764,6 +764,13 @@
     cursor:pointer;text-decoration:none;
     transition:transform 0.2s ease, box-shadow 0.2s ease;
   }
+  /* O atributo "hidden" do HTML normalmente esconde o elemento via um
+     estilo padrão do navegador — mas como esse estilo padrão perde pra
+     regra ".fab" acima de qualquer jeito (regra escrita por nós sempre
+     vence a regra padrão do navegador, mesmo quando o elemento está
+     marcado como hidden), sem esta linha um botão .fab escondido via
+     JavaScript (btn.hidden = true) continuaria aparecendo na tela. */
+  .fab[hidden]{display:none;}
   .fab:hover{transform:scale(1.06);box-shadow:0 10px 28px rgba(0,0,0,0.45);}
   .fab-share{background:var(--surface);border:1px solid var(--line-strong);color:var(--data-light);}
   .fab-wa{width:56px;height:56px;background:#25D366;color:#fff;border:none;}
